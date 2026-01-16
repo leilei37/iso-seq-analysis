@@ -1,3 +1,29 @@
+############normalization
+#sort data
+expr<-read.table('/Users/au760484/Downloads/legume/isoseq/expressionMatrix_nocotig/classification_all_nocotig_nonovel_aggregatesamegene.tsv',header = T)
+rownames(expr)<-expr[,2]
+expr<-expr[,-c(1:2)]
+expr<-expr[,-c(1)]
+
+colnames(expr)<-gsub('FL.F','Core',colnames(expr))
+#hist
+hist(rowSums(expr!=0),labels = T)
+#filter genes
+left_gene<-rownames(expr)[which(rowSums(expr!=0)>(19.8*3))]
+#normalize
+condition<-data.frame(cbind(colnames(expr),1))
+colnames(condition)[2]<-'condition'
+library(DESeq2)
+dds <- DESeqDataSetFromMatrix(expr[left_gene,],
+                              group,
+                              design = ~ V3)
+vst<-vst(dds,blind = T)
+pdf(file = '~/Downloads/legume/isoseq/vst.pdf')
+p<-plotPCA(vst,'condition')
+print(p)
+dev.off()
+expr.nor<-vst@assays@data@listData[[1]]
+#############################co-expression
 library(WGCNA)
 raw_data <- read.table('~/Downloads/legume/isoseq/osca_Mac_v0.45/expr_176_filter5re_v2.txt')
 rownames(raw_data)<-raw_data[,1]
